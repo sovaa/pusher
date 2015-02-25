@@ -21,6 +21,7 @@ class TarFile:
 
     self.fp      = open(self.temp, "w")
     self.tar     = tarfile.open(mode="w", fileobj=self.fp)
+    self.batch_zip = config.get("zip_unpack_batch", False)
 
     self.file_permissions = int(config.get("tar_file_permissions", self.default_file_permissions), 8)
     self.dir_permissions = int(config.get("tar_dir_permissions", self.default_dir_permissions), 8)
@@ -64,6 +65,9 @@ class TarFile:
     info.size  = handle.size
 
     logger.info("Adding to tar: {0} ({1} bytes)".format(info.name, info.size))
+
+    if not self.batch_zip:
+      info.size = 0 # zero size will read whole file without batching
 
     try:
       self.tar.addfile(info, handle.fileobj)
